@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,11 +7,27 @@ import Icon from '@/components/ui/icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import AuthModal from '@/components/AuthModal';
+import OpenCardModal from '@/components/OpenCardModal';
+import AIAssistant from '@/components/AIAssistant';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
   const [transferAmount, setTransferAmount] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [showOpenCard, setShowOpenCard] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showAI, setShowAI] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [userData, setUserData] = useState({ name: 'Гость', email: '', phone: '' });
+  const [editMode, setEditMode] = useState(false);
+  const [editData, setEditData] = useState({ name: '', email: '', phone: '', birthdate: '' });
 
   const cards = [
     {
@@ -49,6 +66,18 @@ const Index = () => {
     }
   };
 
+  const handleAuth = (user: { name: string; email: string; phone: string }) => {
+    setIsAuthenticated(true);
+    setUserData(user);
+    setEditData({ name: user.name, email: user.email, phone: user.phone, birthdate: '15.03.1990' });
+  };
+
+  const handleSaveProfile = () => {
+    setUserData({ name: editData.name, email: editData.email, phone: editData.phone });
+    setEditMode(false);
+    alert('Профиль успешно обновлен!');
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border">
@@ -79,11 +108,22 @@ const Index = () => {
             </Button>
           </nav>
 
-          <Button variant="ghost" size="icon" onClick={() => setActiveTab('profile')}>
-            <Avatar>
-              <AvatarFallback className="bg-primary text-primary-foreground">АП</AvatarFallback>
-            </Avatar>
-          </Button>
+          <div className="flex items-center gap-3">
+            {!isAuthenticated ? (
+              <Button onClick={() => setShowAuth(true)} variant="outline" size="sm">
+                <Icon name="LogIn" size={16} className="mr-2" />
+                Войти
+              </Button>
+            ) : (
+              <Button variant="ghost" size="icon" onClick={() => setActiveTab('profile')}>
+                <Avatar>
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {userData.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -105,11 +145,11 @@ const Index = () => {
                   Быстрые переводы, умные инвестиции и кэшбэк за каждую покупку
                 </p>
                 <div className="flex gap-4 justify-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                  <Button size="lg" className="bg-white text-purple-600 hover:bg-white/90 border-0 font-semibold">
+                  <Button onClick={() => setShowOpenCard(true)} size="lg" className="bg-white text-purple-600 hover:bg-white/90 border-0 font-semibold">
                     <Icon name="Zap" size={20} className="mr-2" />
                     Открыть карту
                   </Button>
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                  <Button onClick={() => setShowHowItWorks(true)} size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
                     <Icon name="Play" size={20} className="mr-2" />
                     Как это работает
                   </Button>
@@ -361,7 +401,17 @@ const Index = () => {
               <p className="text-muted-foreground">Мы здесь, чтобы помочь вам 24/7</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-4 gap-4">
+              <Card onClick={() => setShowAI(true)} className="glass border-border hover:border-primary transition-all cursor-pointer">
+                <CardContent className="pt-6 text-center">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center mx-auto mb-4">
+                    <Icon name="Bot" size={32} className="text-white" />
+                  </div>
+                  <h3 className="font-semibold mb-2">ИИ-Помощник</h3>
+                  <p className="text-sm text-muted-foreground">Мгновенный ответ</p>
+                </CardContent>
+              </Card>
+
               <Card className="glass border-border hover:border-primary transition-all cursor-pointer">
                 <CardContent className="pt-6 text-center">
                   <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center mx-auto mb-4">
@@ -419,28 +469,87 @@ const Index = () => {
           <div className="space-y-8 animate-fade-in max-w-2xl mx-auto">
             <div className="text-center">
               <Avatar className="w-24 h-24 mx-auto mb-4">
-                <AvatarFallback className="bg-primary text-primary-foreground text-3xl">АП</AvatarFallback>
+                <AvatarFallback className="bg-primary text-primary-foreground text-3xl">
+                  {userData.name.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
               </Avatar>
-              <h2 className="text-3xl font-bold mb-1">Алексей Петров</h2>
-              <p className="text-muted-foreground">+7 (900) 123-45-67</p>
+              <h2 className="text-3xl font-bold mb-1">{userData.name}</h2>
+              <p className="text-muted-foreground">{userData.phone || '+7 (900) 123-45-67'}</p>
             </div>
 
             <Card className="glass border-border">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Личная информация</CardTitle>
+                {!editMode && (
+                  <Button onClick={() => setEditMode(true)} variant="outline" size="sm">
+                    <Icon name="Edit" size={16} className="mr-2" />
+                    Редактировать
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm text-muted-foreground mb-2 block">Email</label>
-                  <Input value="alexey.petrov@mail.ru" className="bg-muted/50" />
+                  <Label className="text-sm text-muted-foreground mb-2 block">Имя и Фамилия</Label>
+                  <Input 
+                    value={editMode ? editData.name : userData.name} 
+                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                    disabled={!editMode}
+                    className="bg-muted/50" 
+                  />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground mb-2 block">Дата рождения</label>
-                  <Input value="15.03.1990" className="bg-muted/50" />
+                  <Label className="text-sm text-muted-foreground mb-2 block">Email</Label>
+                  <Input 
+                    value={editMode ? editData.email : userData.email || 'user@shopbank.ru'} 
+                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                    disabled={!editMode}
+                    className="bg-muted/50" 
+                  />
                 </div>
-                <Button className="w-full gradient-primary text-white border-0">
-                  Сохранить изменения
-                </Button>
+                <div>
+                  <Label className="text-sm text-muted-foreground mb-2 block">Телефон</Label>
+                  <Input 
+                    value={editMode ? editData.phone : userData.phone || '+7 (900) 123-45-67'} 
+                    onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                    disabled={!editMode}
+                    className="bg-muted/50" 
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm text-muted-foreground mb-2 block">Дата рождения</Label>
+                  <Input 
+                    value={editMode ? editData.birthdate : '15.03.1990'} 
+                    onChange={(e) => setEditData({ ...editData, birthdate: e.target.value })}
+                    disabled={!editMode}
+                    className="bg-muted/50" 
+                  />
+                </div>
+                {editMode && (
+                  <div className="flex gap-2">
+                    <Button onClick={handleSaveProfile} className="flex-1 gradient-primary text-white border-0">
+                      Сохранить изменения
+                    </Button>
+                    <Button onClick={() => setEditMode(false)} variant="outline" className="flex-1">
+                      Отмена
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card onClick={() => navigate('/kids')} className="glass border-0 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white cursor-pointer hover:scale-105 transition-transform">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-2xl font-bold mb-2">🎈 ShoppingBank Kids</h3>
+                    <p className="text-white/90 mb-4">Детское приложение с родительским контролем</p>
+                    <Button className="bg-white text-purple-600 hover:bg-white/90">
+                      <Icon name="Baby" size={20} className="mr-2" />
+                      Открыть
+                    </Button>
+                  </div>
+                  <Icon name="Sparkles" size={80} className="text-white/20" />
+                </div>
               </CardContent>
             </Card>
 
@@ -463,10 +572,17 @@ const Index = () => {
                   </div>
                   <Icon name="ChevronRight" size={20} />
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                <div onClick={() => setShowPrivacy(true)} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
                   <div className="flex items-center gap-3">
-                    <Icon name="HelpCircle" size={20} />
-                    <span>Помощь</span>
+                    <Icon name="FileText" size={20} />
+                    <span>Конфиденциальность</span>
+                  </div>
+                  <Icon name="ChevronRight" size={20} />
+                </div>
+                <div onClick={() => setShowTerms(true)} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <Icon name="ScrollText" size={20} />
+                    <span>Правила пользования</span>
                   </div>
                   <Icon name="ChevronRight" size={20} />
                 </div>
@@ -495,6 +611,116 @@ const Index = () => {
           </Button>
         </div>
       </nav>
+
+      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} onAuth={handleAuth} />
+      <OpenCardModal open={showOpenCard} onClose={() => setShowOpenCard(false)} onSuccess={() => setShowOpenCard(false)} />
+      <AIAssistant open={showAI} onClose={() => setShowAI(false)} />
+
+      <Dialog open={showHowItWorks} onOpenChange={setShowHowItWorks}>
+        <DialogContent className="sm:max-w-3xl glass border-border">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Как это работает</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <div className="text-center text-white">
+                <Icon name="Play" size={64} className="mx-auto mb-4" />
+                <p className="text-lg">Видео о ShoppingBank</p>
+                <p className="text-sm opacity-80 mt-2">Узнайте все возможности за 2 минуты</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">1</div>
+                <div>
+                  <h4 className="font-semibold mb-1">Откройте карту за 5 минут</h4>
+                  <p className="text-sm text-muted-foreground">Заполните анкету онлайн и получите виртуальную карту мгновенно</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">2</div>
+                <div>
+                  <h4 className="font-semibold mb-1">Совершайте покупки и получайте кэшбэк</h4>
+                  <p className="text-sm text-muted-foreground">До 5% кэшбэк начисляется автоматически после каждой покупки</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">3</div>
+                <div>
+                  <h4 className="font-semibold mb-1">Переводите деньги без комиссий</h4>
+                  <p className="text-sm text-muted-foreground">Мгновенные переводы между картами ShoppingBank</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showPrivacy} onOpenChange={setShowPrivacy}>
+        <DialogContent className="sm:max-w-2xl glass border-border max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Политика конфиденциальности</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p className="text-muted-foreground">Последнее обновление: 19 декабря 2024</p>
+            <div>
+              <h4 className="font-semibold mb-2">1. Сбор информации</h4>
+              <p className="text-muted-foreground">Мы собираем информацию, которую вы предоставляете при регистрации: имя, email, номер телефона и дату рождения.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">2. Использование данных</h4>
+              <p className="text-muted-foreground">Ваши данные используются для предоставления банковских услуг, обработки транзакций и улучшения сервиса.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">3. Защита информации</h4>
+              <p className="text-muted-foreground">Мы используем современные методы шифрования и защиты данных. Ваша информация надежно защищена.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">4. Передача третьим лицам</h4>
+              <p className="text-muted-foreground">Мы не передаем ваши данные третьим лицам без вашего согласия, за исключением случаев, предусмотренных законом.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">5. Ваши права</h4>
+              <p className="text-muted-foreground">Вы имеете право на доступ, изменение и удаление своих персональных данных. Свяжитесь с нами для реализации этих прав.</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showTerms} onOpenChange={setShowTerms}>
+        <DialogContent className="sm:max-w-2xl glass border-border max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Правила пользования</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p className="text-muted-foreground">Последнее обновление: 19 декабря 2024</p>
+            <div>
+              <h4 className="font-semibold mb-2">1. Принятие условий</h4>
+              <p className="text-muted-foreground">Используя ShoppingBank, вы соглашаетесь с настоящими правилами и обязуетесь их соблюдать.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">2. Регистрация аккаунта</h4>
+              <p className="text-muted-foreground">Для открытия карты необходимо предоставить достоверные данные. Вы несете ответственность за сохранность пароля.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">3. Использование карты</h4>
+              <p className="text-muted-foreground">Карта предназначена для личного использования. Запрещена передача карты третьим лицам и использование для незаконных операций.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">4. Комиссии и тарифы</h4>
+              <p className="text-muted-foreground">Переводы между картами ShoppingBank бесплатны. Другие операции могут облагаться комиссией согласно тарифам.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">5. Безопасность</h4>
+              <p className="text-muted-foreground">Немедленно сообщайте нам о любых подозрительных операциях. Мы не несем ответственности за операции, совершенные с вашего согласия.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">6. Детские счета</h4>
+              <p className="text-muted-foreground">ShoppingBank Kids доступен для детей от 6 до 18 лет. Требуется привязка к аккаунту родителя и родительский контроль.</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
